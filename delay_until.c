@@ -1,0 +1,87 @@
+#include <unistd.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <sys/time.h>
+
+#ifdef __MACH__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
+#define NB_TASKS 2
+
+/*************** main ********************/
+int main(int argc, char* argv[]){
+  pthread_t Les_Threads[NB_TASKS];
+  int delai[NB_TASKS];
+  void Une_Tache (void *arg);
+
+  if (argc != 3) {
+    printf("Utilisation : %s delai_1 delai_2 !\n", argv[0]);
+    return 1;
+  }
+
+  /* creation des threads */
+  /* A FAIRE */
+    delai[0] = atoi(argv[1]);
+    delai[1] = atoi(argv[2]);
+  
+  /* attendre la fin des threads precedemment crees */
+    int i = 0;
+  for (i = 0 ; i < NB_TASKS ; i++){
+      pthread_create(&Les_Threads[i], NULL, (void *(*)(void *))Une_Tache, &delai[i]);
+    printf("main (tid %d) fin de tid %d\n", (int)pthread_self(), (int)Les_Threads[i]);
+  }
+
+  return 0;
+}
+
+void current_utc_time(struct timespec *ts) {
+    
+#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+    clock_serv_t cclock;
+    mach_timespec_t mts;
+    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+    clock_get_time(cclock, &mts);
+    mach_port_deallocate(mach_task_self(), cclock);
+    ts->tv_sec = mts.tv_sec;
+    ts->tv_nsec = mts.tv_nsec;
+#else
+    clock_gettime(CLOCK_REALTIME, ts);
+#endif
+    
+}
+
+/*************** Une_Tache ********************/
+void Une_Tache (void *arg) {
+  int *Ptr;
+  int compteur, delai;
+  pthread_cond_t var_cond;
+  pthread_mutex_t verrou;
+  struct timespec time;
+
+  Ptr = (int *)arg;
+  delai = *Ptr;
+
+
+  /* initialiser le verrou et la var. cond. */
+  /* A FAIRE */
+    pthread_cond_init(&var_cond, NULL);
+    pthread_mutex_init(&verrou, NULL);
+    
+  compteur = 0;
+  while (compteur < 10){
+      pthread_cond_wait(&var_cond, &verrou);
+    current_utc_time(&time);
+    time.tv_sec += delai ;
+    compteur = compteur + 1;
+    printf("tid %d : date (s.ns) : %d.%d, compteur %d, delai %d\n", 
+	   (int)pthread_self(), (int)time.tv_sec, (int)time.tv_nsec, compteur, delai);
+      pthread_cond_broadcast(&var_cond);
+   // pthread_cond_t
+  }
+
+}
