@@ -1,15 +1,6 @@
-#include <unistd.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <sys/time.h>
-
-#ifdef __MACH__
-#include <mach/clock.h>
-#include <mach/mach.h>
-#endif
+#include <pthread.h>
 
 #define NB_TASKS 2
 
@@ -26,15 +17,18 @@ int main(int argc, char* argv[]){
 
   /* creation des threads */
   /* A FAIRE */
-    delai[0] = atoi(argv[1]);
-    delai[1] = atoi(argv[2]);
+	delai[0] = atoi(argv[1]);
+	delai[1] = atoi(argv[2]);
   
   /* attendre la fin des threads precedemment crees */
-    int i = 0;
+	int i = 0;
   for (i = 0 ; i < NB_TASKS ; i++){
-      pthread_create(&Les_Threads[i], NULL, (void *(*)(void *))Une_Tache, &delai[i]);
+    pthread_create(&Les_Threads[i], NULL, (void *(*)(void *))Une_Tache, &delai[i]);
     printf("main (tid %d) fin de tid %d\n", (int)pthread_self(), (int)Les_Threads[i]);
   }
+
+	pthread_join(Les_Threads[0], NULL);
+	pthread_join(Les_Threads[1], NULL);
 
   return 0;
 }
@@ -53,18 +47,19 @@ void Une_Tache (void *arg) {
 
   /* initialiser le verrou et la var. cond. */
   /* A FAIRE */
-    pthread_cond_init(&var_cond, NULL);
-    pthread_mutex_init(&verrou, NULL);
-    
+	pthread_cond_init(&var_cond, NULL);
+	pthread_mutex_init(&verrou, NULL);
+  
   compteur = 0;
   while (compteur < 10){
-      pthread_cond_wait(&var_cond, &verrou);
-    clock_gettime(CLOCK_REALTIME, &time);
+    pthread_cond_timedwait(&var_cond, &verrou, &time);
+    clock_gettime (CLOCK_REALTIME, &time);
     time.tv_sec += delai ;
     compteur = compteur + 1;
     printf("tid %d : date (s.ns) : %d.%d, compteur %d, delai %d\n", 
 	   (int)pthread_self(), (int)time.tv_sec, (int)time.tv_nsec, compteur, delai);
-      pthread_cond_broadcast(&var_cond);
-   }
+    pthread_cond_broadcast(&var_cond);
+
+  }
 
 }
