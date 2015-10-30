@@ -1,0 +1,39 @@
+load scenario 2
+Periodic Tasks
+--------------
+p1 00  1 C=4 P=10
+p2 00  1 C=4 P=15
+p3 00  1 C=6 P=18
+--------------
+Aperiodic Tasks
+---------------
+---------------
+Compute priorities
+------------------
+p3 00  1 C=6 P=18
+p2 00  1 C=4 P=15
+p1 00  1 C=4 P=10
+------------------
+p3 00 activated
+p2 00 activated
+p1 00 activated
+p1 04 completed
+p2 08 completed
+p1 10 activated
+p1 14 completed
+p2 15 activated
+p2 19 completed
+p1 20 activated
+p1 24 completed
+p3 26 completed
+p3 26 OVERRUN 18 < 25
+p2 30 activated
+p1 30 activated
+p1 34 completed
+p2 38 completed
+p1 40 activated
+p1 44 completed
+p2 45 activated
+p2 49 completed
+p1 50 activated
+p1 54 completed
